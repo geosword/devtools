@@ -1,0 +1,46 @@
+# ArchLinux image with Python dependencies
+
+FROM archlinux:latest
+MAINTAINER geosword
+
+# Locale
+RUN echo 'en_GB.UTF-8 UTF-8' >> /etc/locale.gen && locale-gen
+ENV LANG en_GB.UTF-8
+ENV LANGUAGE en_GB:en
+ENV LC_ALL en_GB.UTF-8
+
+# Update base system
+RUN pacman-key --init && pacman-key --populate \
+    && pacman -Syu --noconfirm --noprogressbar pacman \
+    && pacman-db-upgrade \
+    && pacman -Su --noconfirm --noprogressbar ca-certificates \
+    && trust extract-compat \
+    && pacman -Syyu --noconfirm --noprogressbar \
+    && pacman -Scc --noconfirm
+
+# Install some useful packages to the base system
+RUN pacman -Sy --noconfirm --noprogressbar \
+  binutils \
+  fakeroot \
+  git \
+  python \
+  python-pip \
+  python-setuptools \
+  python-virtualenv \
+  python2 \
+  python2-pip \
+  rsync \
+  sudo
+
+RUN pip install pynvim
+RUN useradd -m -d /home/devel -u 1000 -U -G users,tty -s /bin/bash devel
+# Add devel user to build packages
+RUN echo 'devel ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers
+USER devel
+ENV TERM dumb
+RUN git config --global user.email devel@a.b && git config --global user.name devel
+
+
+# Install AUR helper. This will mean that we can test installing packages via yay from the AUR
+RUN git clone https://aur.archlinux.org/yay-bin.git /tmp/yay-bin && cd /tmp/yay-bin \
+ && makepkg -sfi --noconfirm

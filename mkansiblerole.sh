@@ -9,3 +9,4 @@ molecule init role $CWD
 mv $CWD/$CWD/*
 wget https://github.com/your_standard/gitignore
 wget https://github.com/your_standard/Dockerfile - could perhaps allow a command line argument to specify this
+wget https://github.com/your_standard/verify.yml
