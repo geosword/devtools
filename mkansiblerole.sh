@@ -1,4 +1,24 @@
 #!/usr/bin/env bash
+# Rudemintary check that we're being sourced. If you we dont source this script, then pip will NOT install
+# to the virtualenvironment we just created
+# https://stackoverflow.com/questions/2683279/how-to-detect-if-a-script-is-being-sourced
+sourced=0
+if [ -n "$ZSH_EVAL_CONTEXT" ]; then
+  case $ZSH_EVAL_CONTEXT in *:file) sourced=1;; esac
+elif [ -n "$KSH_VERSION" ]; then
+  [ "$(cd $(dirname -- $0) && pwd -P)/$(basename -- $0)" != "$(cd $(dirname -- ${.sh.file}) && pwd -P)/$(basename -- ${.sh.file})" ] && sourced=1
+elif [ -n "$BASH_VERSION" ]; then
+  (return 0 2>/dev/null) && sourced=1
+else # All other shells: examine $0 for known shell binary filenames
+  # Detects `sh` and `dash`; add additional shell filenames as needed.
+  case ${0##*/} in sh|dash) sourced=1;; esac
+fi
+
+if [[ "${sourced}" != "1" ]]; then
+	echo "FATAL: You need to source this script, otherwise it will not work as intended"
+	exit 1
+fi
+
 source /usr/bin/virtualenvwrapper.sh
 CWD=$(basename $PWD)
 # pseudo from here onwards
