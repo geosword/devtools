@@ -24,7 +24,7 @@ CWD=$(basename $PWD)
 # pseudo from here onwards
 mkvirtualenv $CWD
 pip install molecule docker boto boto3 botocore
-pip freeze > requriements.txt
+pip freeze > requirements.txt
 molecule init role $CWD
 ## NOTE --template option of molecule is documented but not implemented in version 3.03
 mv $CWD/* ./
