@@ -28,6 +28,7 @@ pip freeze > requirements.txt
 molecule init role $CWD
 ## NOTE --template option of molecule is documented but not implemented in version 3.03
 mv $CWD/* ./
+rm -r $PWD/$CWD
 curl -L https://github.com/geosword/molecule-scaffold/archive/master.zip --output master.zip
 [[ -f master.zip ]] && unzip master.zip && rm -r ./molecule/default
 [[ -d molecule-scaffold-master ]] && mv molecule-scaffold-master/molecule/default ./molecule/default && rm -r molecule-scaffold-master
