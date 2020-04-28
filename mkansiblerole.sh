@@ -31,6 +31,12 @@ mv $CWD/* ./
 rm -r $PWD/$CWD
 curl -L https://github.com/geosword/molecule-scaffold/archive/master.zip --output master.zip
 [[ -f master.zip ]] && unzip master.zip && rm -r ./molecule/default
+[[ -f molecule-scaffold-master/.yamllint ]] && mv molecule-scaffold-master/.yamllint ./
+[[ -f molecule-scaffold-master/meta-main.yml ]] && mv molecule-scaffold-master/meta-main.yml meta/main.yml
 [[ -d molecule-scaffold-master ]] && mv molecule-scaffold-master/molecule/default ./molecule/default && rm -r molecule-scaffold-master
+# SED the rolename into the converge playbook
+sed -i "s/\"rolename\"/\"${CWD}\"/g" molecule/default/converge.yml
+# needs to be a git repo for molecule to lint
+[[ ! -d .git ]] && git init
 # cleanup
 rm master.zip
