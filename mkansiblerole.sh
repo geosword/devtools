@@ -29,7 +29,8 @@ molecule init role $CWD
 ## NOTE --template option of molecule is documented but not implemented in version 3.03
 mv $CWD/* ./
 rm -r $PWD/$CWD
-curl -L https://github.com/geosword/molecule-scaffold/archive/master.zip --output master.zip
+curl -L https://gitea.sectigo.net/dylanh/molecule-scaffold/archive/master.zip --output master.zip
+#curl -L https://github.com/geosword/molecule-scaffold/archive/master.zip --output master.zip
 [[ -f master.zip ]] && unzip master.zip && rm -r ./molecule/default
 [[ -f molecule-scaffold-master/.yamllint ]] && mv molecule-scaffold-master/.yamllint ./
 [[ -f molecule-scaffold-master/meta-main.yml ]] && mv molecule-scaffold-master/meta-main.yml meta/main.yml
