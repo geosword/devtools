@@ -30,11 +30,16 @@ molecule init role $CWD
 mv $CWD/* ./
 rm -r $PWD/$CWD
 curl -L https://gitea.sectigo.net/dylanh/molecule-scaffold/archive/master.zip --output master.zip
-#curl -L https://github.com/geosword/molecule-scaffold/archive/master.zip --output master.zip
+MASTERFOLDER=$(unzip -Zl master.zip | sed '1,2d;$d' | awk '{print $10}' | head -n 1 | tr -d '/')
 [[ -f master.zip ]] && unzip master.zip && rm -r ./molecule/default
-[[ -f molecule-scaffold-master/.yamllint ]] && mv molecule-scaffold-master/.yamllint ./
-[[ -f molecule-scaffold-master/meta-main.yml ]] && mv molecule-scaffold-master/meta-main.yml meta/main.yml
-[[ -d molecule-scaffold-master ]] && mv molecule-scaffold-master/molecule/default ./molecule/default && rm -r molecule-scaffold-master
+if [[ ! -d "${MASTERFOLDER}" ]]; then
+	echo "The expected master folder was not present, please check the archive downloaded from source control"
+	# return not exit because we are sourced, and dont want to kill the existing session
+	return 1
+fi
+[[ -f ${MASTERFOLDER}/.yamllint ]] && mv ${MASTERFOLDER}/.yamllint ./
+[[ -f ${MASTERFOLDER}/meta-main.yml ]] && mv ${MASTERFOLDER}/meta-main.yml meta/main.yml
+[[ -d ${MASTERFOLDER} ]] && mv ${MASTERFOLDER}/molecule/default ./molecule/default && rm -r ${MASTERFOLDER}
 # SED the rolename into the converge playbook
 sed -i "s/\"rolename\"/\"${CWD}\"/g" molecule/default/converge.yml
 # needs to be a git repo for molecule to lint
