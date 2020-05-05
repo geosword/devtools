@@ -21,10 +21,12 @@ fi
 
 source /usr/bin/virtualenvwrapper.sh
 CWD=$(basename $PWD)
-# pseudo from here onwards
 mkvirtualenv $CWD
 pip install molecule docker boto boto3 botocore
 pip freeze > requirements.txt
+# TODO. Do we need to even molecule init?
+# https://github.com/ansible-community/molecule/issues/2657
+# Could potentially just ansible galaxy (init?) and then copy in your molecule scaffold
 molecule init role $CWD
 ## NOTE --template option of molecule is documented but not implemented in version 3.03
 mv $CWD/* ./
