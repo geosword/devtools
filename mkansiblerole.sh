@@ -40,6 +40,7 @@ if [[ ! -d "${MASTERFOLDER}" ]]; then
 	return 1
 fi
 [[ -f ${MASTERFOLDER}/.yamllint ]] && mv ${MASTERFOLDER}/.yamllint ./
+[[ -f ${MASTERFOLDER}/.gitignore ]] && mv ${MASTERFOLDER}/.gitignore ./
 [[ -f ${MASTERFOLDER}/meta-main.yml ]] && mv ${MASTERFOLDER}/meta-main.yml meta/main.yml
 [[ -d ${MASTERFOLDER} ]] && mv ${MASTERFOLDER}/molecule/default ./molecule/default && rm -r ${MASTERFOLDER}
 # SED the rolename into the converge playbook
