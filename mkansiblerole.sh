@@ -19,8 +19,8 @@ if [[ "${sourced}" != "1" ]]; then
 	exit 1
 fi
 
-# PIP modules we want to run
-PIPMODULES=(molecule docker boto boto3 botocore)
+# PIP modules we want to run. molecule-ec2 adds ec2 support to molecule
+PIPMODULES=(molecule molecule-ec2 docker boto boto3 botocore)
 CWD=$(basename $PWD)
 # TODO check if we are already in a virtual environment called this, skip if so, fail with message if its
 # a virtual environment thats NOT called basename $PWD
