@@ -2,6 +2,9 @@
 # Rudemintary check that we're being sourced. If you we dont source this script, then pip will NOT install
 # to the virtualenvironment we just created
 # https://stackoverflow.com/questions/2683279/how-to-detect-if-a-script-is-being-sourced
+MOLECULESCAFFOLDURL="https://gitea.sectigo.net/dylanh/molecule-scaffold.git"
+MASTERFOLDER=.molecule-scaffold
+
 sourced=0
 if [ -n "$ZSH_EVAL_CONTEXT" ]; then
   case $ZSH_EVAL_CONTEXT in *:file) sourced=1;; esac
@@ -17,6 +20,13 @@ fi
 if [[ "${sourced}" != "1" ]]; then
 	echo "FATAL: You need to source this script, otherwise it will not work as intended"
 	exit 1
+fi
+# check if this is a git repo already
+if [[ -d .git ]]; then
+	if ! git status | grep -q "nothing to commit"; then
+		echo "Please commit or revert all changes before running this"
+		return 1
+	fi
 fi
 
 # PIP modules we want to run. molecule-ec2 adds ec2 support to molecule
@@ -65,26 +75,38 @@ if [[ ! -d molecule ]]; then
 	## NOTE --template option of molecule is documented but not implemented in version 3.03
 	mv $CWD/* ./
 	rm -r $PWD/$CWD
-	curl -L https://gitea.sectigo.net/dylanh/molecule-scaffold/archive/master.zip --output master.zip
-	MASTERFOLDER=$(unzip -Zl master.zip | sed '1,2d;$d' | awk '{print $10}' | head -n 1 | tr -d '/')
-	[[ -f master.zip ]] && unzip master.zip && rm -r ./molecule/default
+	# create git repo assuming we're not already
+	if [[ ! -d .git ]]; then
+		# remove the stock molecule folder, we dont need it
+		git init
+		pre-commit install
+		# we need to do an initial commit in order to allow adding of the molecule-scaffold via subtree
+		# a subtree has been selected because it favours pulls over pushes in terms of simplicity.
+		git add .
+		git commit -n -m "initial commit"
+		git subtree add --prefix=${MASTERFOLDER} --squash ${MOLECULESCAFFOLDURL} master
+	fi
 	if [[ ! -d "${MASTERFOLDER}" ]]; then
-		echo "The expected master folder was not present, please check the archive downloaded from source control"
+		echo "The expected folder ${MASTERFOLDER} was not present, please check the archive downloaded from source control"
 		# return not exit because we are sourced, and dont want to kill the existing session
 		return 1
 	fi
-	[[ -f ${MASTERFOLDER}/.yamllint ]] && mv ${MASTERFOLDER}/.yamllint ./
-	[[ -f ${MASTERFOLDER}/.gitignore ]] && mv ${MASTERFOLDER}/.gitignore ./
-	[[ -f ${MASTERFOLDER}/meta-main.yml ]] && mv ${MASTERFOLDER}/meta-main.yml meta/main.yml
-	[[ -d ${MASTERFOLDER} ]] && mv ${MASTERFOLDER}/molecule/default ./molecule/default
+	# copy in things which are reasonably likely to change
+	[[ -f ${MASTERFOLDER}/.yamllint ]] && cp ${MASTERFOLDER}/.yamllint ./
+	[[ -f ${MASTERFOLDER}/.gitignore ]] && cp ${MASTERFOLDER}/.gitignore ./
+	[[ -f ${MASTERFOLDER}/meta-main.yml ]] && cp ${MASTERFOLDER}/meta-main.yml meta/main.yml
 	if [[ -f ${MASTERFOLDER}/pre-commit-config.yaml ]]; then
-		mv ${MASTERFOLDER}/pre-commit-config.yaml ./.pre-commit-config.yaml
+		cp ${MASTERFOLDER}/pre-commit-config.yaml ./.pre-commit-config.yaml
 	fi
-	rm -r ${MASTERFOLDER}
+	for i in converge.yml Dockerfile.j2 molecule.yml prepare.yml verify.yml; do
+		[[ -f ${MASTERFOLDER}/molecule/default/${i} ]] && cp ${MASTERFOLDER}/molecule/default/${i} ./molecule/default/
+	done
+	# Symlink stuff that should remain reasonably static (or at least be updated in the molecule-scaffold repo)
+	[[ -d ${MASTERFOLDER}/molecule/default/tasks ]] && ln -s ../../${MASTERFOLDER}/molecule/default/tasks ./molecule/default/tasks
 	# SED the rolename into the converge playbook
 	sed -i "s/\"rolename\"/\"${CWD}\"/g" molecule/default/converge.yml
-	# needs to be a git repo for molecule to lint. Also we skip this if its already a git repo
-	[[ ! -d .git ]] && git init && pre-commit install
-	# cleanup
-	rm master.zip
+	echo "Files have been modified, but not commited, use $ git status to check the situation"
+	echo "If you already have a <insert favourite git hosting service here> you can add this to it with:"
+	echo "$ git remote add origin https://git.example.com/user/repo.git"
+	echo "$ git push origin master"
 fi
