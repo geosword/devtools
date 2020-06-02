@@ -76,15 +76,15 @@ if [[ ! -d molecule ]]; then
 	[[ -f ${MASTERFOLDER}/.yamllint ]] && mv ${MASTERFOLDER}/.yamllint ./
 	[[ -f ${MASTERFOLDER}/.gitignore ]] && mv ${MASTERFOLDER}/.gitignore ./
 	[[ -f ${MASTERFOLDER}/meta-main.yml ]] && mv ${MASTERFOLDER}/meta-main.yml meta/main.yml
-	[[ -d ${MASTERFOLDER} ]] && mv ${MASTERFOLDER}/molecule/default ./molecule/default && rm -r ${MASTERFOLDER}
-	if [[ -f ${MASTERFOLDER}/pre-commit-config.yaml ]];
+	[[ -d ${MASTERFOLDER} ]] && mv ${MASTERFOLDER}/molecule/default ./molecule/default
+	if [[ -f ${MASTERFOLDER}/pre-commit-config.yaml ]]; then
 		mv ${MASTERFOLDER}/pre-commit-config.yaml ./.pre-commit-config.yaml
-		pre-commit install
 	fi
+	rm -r ${MASTERFOLDER}
 	# SED the rolename into the converge playbook
 	sed -i "s/\"rolename\"/\"${CWD}\"/g" molecule/default/converge.yml
 	# needs to be a git repo for molecule to lint. Also we skip this if its already a git repo
-	[[ ! -d .git ]] && git init
+	[[ ! -d .git ]] && git init && pre-commit install
 	# cleanup
 	rm master.zip
 fi
